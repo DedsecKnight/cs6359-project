@@ -9,9 +9,9 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useRouter } from "next/router";
 import Navbar from "@/components/Navbar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import CreateAdvertisementDialog from "@/components/CreateAdvertisementDialog";
-import ModifyAdvertisementDialog from "@/components/ModifyAdvertisementDialog";
-import DeleteAdvertisementDialog from "@/components/DeleteAdvertisementDialog";
+import CreateAdvertisementDialog from "@/components/advertiser-dashboard/CreateAdvertisementDialog";
+import ModifyAdvertisementDialog from "@/components/advertiser-dashboard/ModifyAdvertisementDialog";
+import DeleteAdvertisementDialog from "@/components/advertiser-dashboard/DeleteAdvertisementDialog";
 
 interface AdvertiserPageProps {
   authorized: boolean;

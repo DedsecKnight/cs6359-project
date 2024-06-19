@@ -9,10 +9,9 @@ import { adminTable, credentialsTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import Navbar from "@/components/Navbar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import ModifyUserDialog from "@/components/ModifyUserDialog";
-import DeleteUserDialog from "@/components/DeleteUserDialog";
-import CreateUserDialog from "@/components/CreateUserDialog";
+import ModifyUserDialog from "@/components/admin-dashboard/ModifyUserDialog";
+import DeleteUserDialog from "@/components/admin-dashboard/DeleteUserDialog";
+import CreateUserDialog from "@/components/admin-dashboard/CreateUserDialog";
 
 interface AdminPageProps {
   authorized: boolean;

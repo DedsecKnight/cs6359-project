@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { Button } from "./ui/button";
-import { Label } from './ui/label';
-import { Input } from "./ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Label } from '../ui/label';
+import { Input } from "../ui/input";
 
 interface ModifyUserDialogProps {
   userId: number;

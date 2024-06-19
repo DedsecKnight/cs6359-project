@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
-import { Button } from "./ui/button";
-import { Label } from './ui/label';
-import { Input } from "./ui/input";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "./ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Label } from '../ui/label';
+import { Input } from "../ui/input";
 
 interface CreateAdvertisementDialogProps {
   onSubmit: (content: string) => Promise<void>;
