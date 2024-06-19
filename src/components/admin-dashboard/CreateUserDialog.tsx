@@ -22,7 +22,7 @@ export default function CreateUserDialog({ onSubmit }: CreateUserDialogProps) {
       <DialogHeader>
         <DialogTitle>Create User</DialogTitle>
         <DialogDescription>
-          Create new user. Click save when you're done.
+          Create new user. Click save when you&apos;re done.
         </DialogDescription>
       </DialogHeader>
       <div className="grid gap-4 py-4">

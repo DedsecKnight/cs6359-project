@@ -23,8 +23,8 @@ interface AdvertiserPageProps {
 
 export default function AdvertiserPage({ authorized, advertisements }: AdvertiserPageProps) {
   const { status, data: session } = useSession();
-  if (status === "loading") return <LoadingSpinner />
   const router = useRouter();
+  if (status === "loading") return <LoadingSpinner />
 
   if (!authorized) {
     router.push("/");

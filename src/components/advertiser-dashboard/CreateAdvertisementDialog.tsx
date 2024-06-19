@@ -19,7 +19,7 @@ export default function CreateAdvertisementDialog({ onSubmit }: CreateAdvertisem
       <DialogHeader>
         <DialogTitle>Create Advertisement</DialogTitle>
         <DialogDescription>
-          Create new advertisement. Click save when you're done.
+          Create new advertisement. Click save when you&apos;re done.
         </DialogDescription>
       </DialogHeader>
       <div className="grid gap-4 py-4">
