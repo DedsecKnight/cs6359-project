@@ -14,6 +14,13 @@ export default function Navbar({ userAuthenticated, userIsAdmin }: NavbarProps) 
       {userAuthenticated && (
         <NavigationMenu>
           <NavigationMenuList>
+            <NavigationMenuItem>
+              <Link href="/" legacyBehavior passHref>
+                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                  CyberMiner
+                </NavigationMenuLink>
+              </Link>
+            </NavigationMenuItem>
             {userIsAdmin ? (<NavigationMenuItem>
               <Link href="/admin" legacyBehavior passHref>
                 <NavigationMenuLink className={navigationMenuTriggerStyle()}>
