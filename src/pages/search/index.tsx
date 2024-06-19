@@ -1,5 +1,7 @@
+import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { GetServerSideProps } from "next";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
@@ -13,7 +15,9 @@ interface SearchPageProps {
 
 export default function SearchPage({ searchTerm, searchResult }: SearchPageProps) {
   const router = useRouter();
-  return <div className="mx-auto w-full">
+  const { status, data: session } = useSession();
+  return <div className="mx-auto w-full relative">
+    <Navbar userAuthenticated={status === "authenticated"} userIsAdmin={session!.user.role === "admin"} />
     <h1 className="text-xl">Search result for <span className="font-bold">{searchTerm}</span></h1>
     <div className="flex flex-col items-center my-8">
       {searchResult.length === 0 ? (

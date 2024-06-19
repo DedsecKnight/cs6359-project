@@ -7,9 +7,10 @@ import { authOptions } from "../api/auth/[...nextauth]";
 import { db } from "@/db/db";
 import { adminTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import Navbar from "@/components/Navbar";
 
 export default function AdminPage({ authorized }: { authorized: boolean }) {
-  const { status } = useSession();
+  const { status, data: session } = useSession();
   if (status === "loading") return <LoadingSpinner />
   const router = useRouter();
 
@@ -18,7 +19,8 @@ export default function AdminPage({ authorized }: { authorized: boolean }) {
     return <div></div>;
   }
 
-  return <div className="mx-auto">
+  return <div className="mx-auto w-full relative">
+    <Navbar userAuthenticated={status === "authenticated"} userIsAdmin={session!.user.role === "admin"} />
     <h1 className="text-3xl">Admin Page</h1>
   </div>
 }
