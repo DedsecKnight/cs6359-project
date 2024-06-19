@@ -1,10 +1,10 @@
 import { db } from "@/db/db";
 import { adminTable, advertiserTable, credentialsTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-export default NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Username and Password",
@@ -46,9 +46,12 @@ export default NextAuth({
         ...session,
         user: {
           ...session.user,
-          role: (token.user as any).role
+          role: (token.user as any).role,
+          id: (token.user as any).id
         }
       }
     }
   }
-})
+}
+
+export default NextAuth(authOptions);

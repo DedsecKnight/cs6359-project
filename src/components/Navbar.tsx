@@ -14,20 +14,19 @@ export default function Navbar({ userAuthenticated, userIsAdmin }: NavbarProps) 
       {userAuthenticated && (
         <NavigationMenu>
           <NavigationMenuList>
-            {userIsAdmin && (<NavigationMenuItem>
+            {userIsAdmin ? (<NavigationMenuItem>
               <Link href="/admin" legacyBehavior passHref>
                 <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                   Admin Dashboard
                 </NavigationMenuLink>
               </Link>
-            </NavigationMenuItem>)}
-            <NavigationMenuItem>
+            </NavigationMenuItem>) : (<NavigationMenuItem>
               <Link href="/advertiser" legacyBehavior passHref>
                 <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                   Advertiser Dashboard
                 </NavigationMenuLink>
               </Link>
-            </NavigationMenuItem>
+            </NavigationMenuItem>)}
           </NavigationMenuList>
         </NavigationMenu>
       )}
