@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { GetServerSideProps } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -16,6 +17,7 @@ interface SearchPageProps {
 export default function SearchPage({ searchTerm, searchResult }: SearchPageProps) {
   const router = useRouter();
   const { status, data: session } = useSession();
+  if (status === "loading") return <LoadingSpinner />;
   return <div className="mx-auto w-full relative">
     <Navbar userAuthenticated={status === "authenticated"} userIsAdmin={session!.user.role === "admin"} />
     <h1 className="text-xl">Search result for <span className="font-bold">{searchTerm}</span></h1>
