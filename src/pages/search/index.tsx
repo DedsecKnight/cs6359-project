@@ -39,9 +39,10 @@ export default function SearchPage({ searchTerm, searchResult }: SearchPageProps
 }
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const protocol = ctx.req.headers.referer?.split('://')[0] || 'http';
   const urlParams = new URLSearchParams();
   urlParams.set("query", ctx.query.value! as string);
-  const res = await fetch(`http://localhost:3000/api/search?${urlParams.toString()}`, {
+  const res = await fetch(`${protocol}://${ctx.req.headers.host}/api/search?${urlParams.toString()}`, {
     method: "GET",
   })
   const data = await res.json();
