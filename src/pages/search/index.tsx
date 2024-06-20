@@ -19,7 +19,7 @@ export default function SearchPage({ searchTerm, searchResult }: SearchPageProps
   const { status, data: session } = useSession();
   if (status === "loading") return <LoadingSpinner />;
   return <div className="mx-auto w-full relative">
-    <Navbar userAuthenticated={status === "authenticated"} userIsAdmin={session!.user.role === "admin"} />
+    <Navbar userAuthenticated={status === "authenticated"} userIsAdmin={session?.user.role !== undefined && session.user.role === "admin"} />
     <h1 className="text-xl">Search result for <span className="font-bold">{searchTerm}</span></h1>
     <div className="flex flex-col items-center my-8">
       {searchResult.length === 0 ? (
