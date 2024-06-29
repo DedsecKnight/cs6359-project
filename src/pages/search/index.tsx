@@ -44,6 +44,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const protocol = ctx.req.headers.referer?.split('://')[0] || 'http';
   const urlParams = new URLSearchParams();
   urlParams.set("query", ctx.query.value! as string);
+  urlParams.set("type", ctx.query.type! as string);
   const res = await fetch(`${protocol}://${ctx.req.headers.host}/api/search?${urlParams.toString()}`, {
     method: "GET",
   })
