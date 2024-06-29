@@ -81,8 +81,8 @@ export default function Home({ tagList }: HomePageProps) {
                   <CommandList>
                     {field.value.length > 0 && (
                       <CommandGroup>
-                        {tagList.map((tag) => (
-                          <div onClick={() => form.setValue("searchTerm", tag.tag)}>
+                        {tagList.map((tag, idx) => (
+                          <div key={idx} onClick={() => form.setValue("searchTerm", tag.tag)}>
                             <CommandItem>
                               <span>{tag.tag}</span>
                             </CommandItem>
