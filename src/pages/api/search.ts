@@ -5,7 +5,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
   const searchTerms = (req.query.query as string).split(" ");
   const queryType = (req.query.type as string);
-  console.log("query type is", queryType);
   if (searchTerms.length === 0) {
     return res.json({
       searchResult: []
