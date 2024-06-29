@@ -28,5 +28,11 @@ export const advertisementTable = pgTable('advertisements', {
   content: text('content').notNull()
 })
 
+export const tagTable = pgTable('tags', {
+  id: serial('id').primaryKey(),
+  webpageId: integer('webpage_id').notNull().references(() => webTable.id),
+  tagName: text('tag_name').notNull()
+})
+
 export type InsertAdvertiser = typeof advertiserTable.$inferInsert;
 export type SelectAdvertiser = typeof advertiserTable.$inferSelect;
