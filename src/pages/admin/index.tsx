@@ -5,13 +5,16 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { authOptions } from "../api/auth/[...nextauth]";
 import { db } from "@/db/db";
-import { adminTable, credentialsTable } from "@/db/schema";
+import { adminTable, credentialsTable, webTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import Navbar from "@/components/Navbar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ModifyUserDialog from "@/components/admin-dashboard/ModifyUserDialog";
 import DeleteUserDialog from "@/components/admin-dashboard/DeleteUserDialog";
 import CreateUserDialog from "@/components/admin-dashboard/CreateUserDialog";
+import ModifyWebpageDialog from "@/components/admin-dashboard/ModifyWebpageDialog";
+import DeleteWebpageDialog from "@/components/admin-dashboard/DeleteWebpageDialog";
+import CreateWebpageDialog from "@/components/admin-dashboard/CreateWebpageDialog";
 
 interface AdminPageProps {
   authorized: boolean;
@@ -19,9 +22,14 @@ interface AdminPageProps {
     id: number;
     username: string;
   }>
+  webpages: Array<{
+    id: number;
+    url: string;
+    description: string;
+  }>
 }
 
-export default function AdminPage({ authorized, users }: AdminPageProps) {
+export default function AdminPage({ authorized, users, webpages }: AdminPageProps) {
   const { status, data: session } = useSession();
   const router = useRouter();
   if (status === "loading") return <LoadingSpinner />
@@ -113,6 +121,88 @@ export default function AdminPage({ authorized, users }: AdminPageProps) {
           </TableRow>
         </TableBody>
       </Table>
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>ID</TableHead>
+            <TableHead>URL</TableHead>
+            <TableHead className="text-center">Description</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {
+            webpages.map((webpage, idx) => (
+              <TableRow key={idx}>
+                <TableCell className="font-medium">{webpage.id}</TableCell>
+                <TableCell className="font-medium">{webpage.url}</TableCell>
+                <TableCell className="text-center">{webpage.description}</TableCell>
+                <TableCell className="flex justify-end gap-x-4">
+                  <ModifyWebpageDialog
+                    defaultUrl={webpage.url}
+                    defaultDesc={webpage.description}
+                    urlId={webpage.id}
+                    onSubmit={async (urlId, url, description) => {
+                      const res = await fetch("/api/webpages", {
+                        headers: {
+                          "Content-Type": "application/json"
+                        },
+                        method: "PUT",
+                        body: JSON.stringify({
+                          id: urlId,
+                          url,
+                          description
+                        })
+                      });
+                      if (res.status !== 200) {
+                        throw new Error("failed to update webpage data. please try again later...");
+                      }
+                    }}
+                  />
+                  <DeleteWebpageDialog
+                    urlId={webpage.id}
+                    onSubmit={async (id) => {
+                      const res = await fetch("/api/webpages", {
+                        headers: {
+                          "Content-Type": "application/json"
+                        },
+                        method: "DELETE",
+                        body: JSON.stringify({
+                          id
+                        })
+                      });
+                      if (res.status !== 200) {
+                        throw new Error("failed to delete webpage data. please try again later...");
+                      }
+                    }}
+                  />
+                </TableCell>
+              </TableRow>
+            ))
+          }
+          <TableRow>
+            <TableCell colSpan={3} className="text-center">
+              <CreateWebpageDialog
+                onSubmit={async (url, description) => {
+                  const res = await fetch("/api/webpages", {
+                    headers: {
+                      "Content-Type": "application/json"
+                    },
+                    method: "POST",
+                    body: JSON.stringify({
+                      url, description
+                    })
+                  });
+                  if (res.status !== 200) {
+                    throw new Error("failed to create webpage data. please try again later...");
+                  }
+                }}
+              />
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </div>
   </div>
 }
@@ -131,10 +221,16 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     id: credentialsTable.id,
     username: credentialsTable.username
   }).from(credentialsTable);
+  const webpages = await db.select({
+    id: webTable.id,
+    url: webTable.url,
+    description: webTable.description
+  }).from(webTable);
   return {
     props: {
       authorized: isAdmin.length > 0,
       users,
+      webpages,
     }
   };
 }
