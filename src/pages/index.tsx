@@ -1,6 +1,3 @@
-import { Input } from '@/components/ui/input'
-import { useState } from 'react';
-import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import Navbar from '@/components/Navbar';
@@ -9,15 +6,25 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { GetServerSideProps } from 'next';
+import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Button } from '@/components/ui/button';
 
 const FormSchema = z.object({
-  searchTerm: z.string({ required_error: "Search term is required" }),
+  searchTerm: z.string({ required_error: "Search term is required" }).default(""),
   queryType: z.union([z.literal("and"), z.literal("or"), z.literal("not")])
 })
 
-export default function Home() {
+interface HomePageProps {
+  tagList: Array<{ id: number; tag: string }>;
+}
+
+export default function Home({ tagList }: HomePageProps) {
   const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema)
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      searchTerm: "",
+    }
   });
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
@@ -65,17 +72,27 @@ export default function Home() {
             <FormField
               control={form.control}
               name="searchTerm"
-              render={({ field }) => (
-                <FormItem>
+              render={({ field }) => (<FormItem>
                   <FormLabel></FormLabel>
+                <Command className="rounded-lg border shadow-md">
                   <FormControl>
-                    <Input
-                      placeholder='Enter search term here'
-                      className='w-full my-8 rounded-xl h-[50px]'
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
+                    <CommandInput value={field.value} onValueChange={field.onChange} placeholder="Enter search term here" />
                   </FormControl>
+                  <CommandList>
+                    {field.value.length > 0 && (
+                      <CommandGroup>
+                        {tagList.map((tag) => (
+                          <div onClick={() => form.setValue("searchTerm", tag.tag)}>
+                            <CommandItem>
+                              <span>{tag.tag}</span>
+                            </CommandItem>
+                          </div>
+                        ))}
+                      </CommandGroup>
+                    )}
+                  </CommandList>
+                </Command>
+
                   <FormDescription></FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -87,4 +104,17 @@ export default function Home() {
       </Form>
     </div>
   );
+}
+
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const protocol = ctx.req.headers.referer?.split('://')[0] || 'http';
+  const res = await fetch(`${protocol}://${ctx.req.headers.host}/api/autofill`, {
+    method: "GET",
+  });
+  const data = await res.json();
+  return {
+    props: {
+      tagList: data.autofillKeywords
+    }
+  }
 }
