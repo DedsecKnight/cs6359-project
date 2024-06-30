@@ -5,6 +5,13 @@ import { NextApiRequest, NextApiResponse } from "next";
 async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
   const searchTerms = (req.query.query as string).split(" ");
   const queryType = (req.query.type as string);
+  let invalidSymbol = ["`", "~", "!", "@", "#", "$", "%", "^", "&", "*", "[", "]", "{", "}", "|", "\\", "\"", "'", ";", ":", "<", ">", ",", ".", "?", "/"];
+  for (let i = 0; i < searchTerms.length; i++){
+    for (let j = 0; j < invalidSymbol.length; j++){
+      searchTerms[i] = searchTerms[i].replaceAll(invalidSymbol[j], "");
+    }
+  }
+  
   if (searchTerms.length === 0) {
     return res.json({
       searchResult: []
