@@ -27,7 +27,7 @@ async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
     return searchTerms.every((term) => parsedDescription.indexOf(term) === -1);
   });
   return res.json({
-    searchResult: filteredWebpages.map(({ id, ...rest }) => rest)
+    searchResult: filteredWebpages.map(({ id, ...rest }) => rest).sort()
   });
 }
 
