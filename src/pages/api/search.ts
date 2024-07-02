@@ -30,7 +30,7 @@ async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
     return searchTerms.every((term) => parsedDescription.indexOf(term) === -1);
   });
   return res.json({
-    searchResult: filteredWebpages.sort().map(({ id, ...rest }) => rest).splice((pageNumber - 1) * numResultPerPage, numResultPerPage),
+    searchResult: filteredWebpages.sort((a,b) => (a.url > b.url) ? 1 : ((b.url > a.url) ? -1 : 0)).map(({ id, ...rest }) => rest).splice((pageNumber - 1) * numResultPerPage, numResultPerPage),
    numPages 
   });
 }
