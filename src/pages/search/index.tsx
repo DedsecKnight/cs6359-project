@@ -37,9 +37,34 @@ export default function SearchPage({ searchTerm, searchResult }: SearchPageProps
       ))}
     </div>
     <Button variant="outline" onClick={() => router.push("/")}>Go back to search</Button>
-  </div>
-}
+    
+    <div className="p-4">
+      <label className="my-auto">Results Per Page: </label> 
+      <select className="form-select w-auto" id="pagination" /*onChange={pagination(searchResult.length)}*/>
+        <option selected value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
 
+        
+      </select>
+      
+    </div>
+    <div className="">
+
+    </div>
+  </div>
+  
+}
+/*
+function pagination(searchLength){
+  const x = .getElementById("pagination").value;
+  if(searchLength > pagination){
+
+  }
+  
+}
+*/
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const protocol = ctx.req.headers.referer?.split('://')[0] || 'http';
   const urlParams = new URLSearchParams();

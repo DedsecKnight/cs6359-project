@@ -5,6 +5,13 @@ import { NextApiRequest, NextApiResponse } from "next";
 async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
   const searchTerms = (req.query.query as string).split(" ");
   const queryType = (req.query.type as string);
+  const invalidSymbol = ["`", "~", "!", "@", "#", "$", "%", "^", "&", "*", "[", "]", "{", "}", "|", "\\", "\"", "'", ";", ":", "<", ">", ",", ".", "?", "/", "(", ")"];
+  for (let i = 0; i < searchTerms.length; i++){
+    for (let j = 0; j < invalidSymbol.length; j++){
+      searchTerms[i] = searchTerms[i].replaceAll(invalidSymbol[j], "");
+    }
+  }
+  
   if (searchTerms.length === 0) {
     return res.json({
       searchResult: []
@@ -20,7 +27,7 @@ async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
     return searchTerms.every((term) => parsedDescription.indexOf(term) === -1);
   });
   return res.json({
-    searchResult: filteredWebpages.map(({ id, ...rest }) => rest)
+    searchResult: filteredWebpages.map(({ id, ...rest }) => rest).sort()
   });
 }
 
