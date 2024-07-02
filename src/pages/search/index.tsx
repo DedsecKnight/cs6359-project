@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { GetServerSideProps } from "next";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -11,12 +12,24 @@ interface SearchPageProps {
   searchResult: Array<{
     url: string;
     description: string;
-  }>
+  }>;
+  pageNumber: number;
+  query: string;
+  type: string;
+  numPages: number;
 }
 
-export default function SearchPage({ searchTerm, searchResult }: SearchPageProps) {
+export default function SearchPage({ searchTerm, searchResult, pageNumber, query, type, numPages }: SearchPageProps) {
   const router = useRouter();
   const { status, data: session } = useSession();
+  const redirectToPage = (newPageNumber: number) => {
+    const urlParams = new URLSearchParams();
+    urlParams.set("value", query);
+    urlParams.set("type", type);
+    urlParams.set("page", newPageNumber.toString());
+    router.push(`/search?${urlParams.toString()}`);
+  }
+
   if (status === "loading") return <LoadingSpinner />;
   return <div className="mx-auto w-full relative">
     <Navbar userAuthenticated={status === "authenticated"} userIsAdmin={session?.user.role !== undefined && session.user.role === "admin"} />
@@ -37,39 +50,36 @@ export default function SearchPage({ searchTerm, searchResult }: SearchPageProps
       ))}
     </div>
     <Button variant="outline" onClick={() => router.push("/")}>Go back to search</Button>
-    
-    <div className="p-4">
-      <label className="my-auto">Results Per Page: </label> 
-      <select className="form-select w-auto" id="pagination" /*onChange={pagination(searchResult.length)}*/>
-        <option selected value="10">10</option>
-        <option value="25">25</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-
-        
-      </select>
-      
-    </div>
-    <div className="">
-
-    </div>
+    <Pagination>
+      <PaginationContent>
+        {pageNumber > 1 && <PaginationItem>
+          <PaginationPrevious
+            className="cursor-pointer"
+            onClick={() => redirectToPage(Math.max(pageNumber - 1, 1))}
+          />
+        </PaginationItem>}
+        <PaginationItem>
+          <PaginationLink>{pageNumber}</PaginationLink>
+        </PaginationItem>
+        {pageNumber < numPages && <PaginationItem>
+          <PaginationNext
+            className="cursor-pointer"
+            onClick={() => redirectToPage(pageNumber + 1)}
+          />
+        </PaginationItem>}
+      </PaginationContent>
+    </Pagination>
   </div>
   
 }
-/*
-function pagination(searchLength){
-  const x = .getElementById("pagination").value;
-  if(searchLength > pagination){
 
-  }
-  
-}
-*/
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const protocol = ctx.req.headers.referer?.split('://')[0] || 'http';
   const urlParams = new URLSearchParams();
+  const pageNumber = (ctx.query.page as string | undefined) || "1";
   urlParams.set("query", ctx.query.value! as string);
   urlParams.set("type", ctx.query.type! as string);
+  urlParams.set("page", pageNumber);
   const res = await fetch(`${protocol}://${ctx.req.headers.host}/api/search?${urlParams.toString()}`, {
     method: "GET",
   })
@@ -77,7 +87,11 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   return {
     props: {
       searchTerm: ctx.query.value!,
-      searchResult: data.searchResult
+      searchResult: data.searchResult,
+      pageNumber: parseInt(pageNumber),
+      query: urlParams.get("query")!,
+      type: urlParams.get("type")!,
+      numPages: data.numPages
     }
   }
 }
