@@ -5,10 +5,20 @@ import { db } from "@/db/db";
 import { webTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+function validateURL(url: string) {
+  const regExpMatcher = new RegExp("^(http:\/\/|https:\/\/)(www.)([a-zA-Z0-9_.-]*)(\.)(edu|com|org|net|gov)$");
+  return regExpMatcher.test(url);
+}
+
 async function handlePutRequest(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
   if (!session || session!.user.role !== "admin") {
     return res.status(403).json({ msg: "unauthorized" });
+  }
+  if (!validateURL(req.body.url)) {
+    return res.status(400).json({
+      msg: "Invalid URL",
+    })
   }
   await db.update(webTable).set({
     id: req.body.id,
