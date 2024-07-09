@@ -6,7 +6,7 @@ import { webTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 function validateURL(url: string) {
-  const regExpMatcher = new RegExp("^(http:\/\/|https:\/\/)(www.)([a-zA-Z0-9_.-]*)(\.)(edu|com|org|net|gov)$");
+  const regExpMatcher = new RegExp("^(http:\/\/|https:\/\/)?(www.)?([a-zA-Z0-9_.-]*)(\.)(edu|com|org|net|gov)$");
   return regExpMatcher.test(url);
 }
 
