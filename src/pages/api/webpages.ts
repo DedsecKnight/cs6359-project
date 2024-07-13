@@ -46,6 +46,11 @@ async function handlePostRequest(req: NextApiRequest, res: NextApiResponse) {
   if (!session || session!.user.role !== "admin") {
     return res.status(403).json({ msg: "unauthorized" });
   }
+  if (!validateURL(req.body.url)) {
+    return res.status(400).json({
+      msg: "Invalid URL",
+    })
+  }
   await db.insert(webTable).values({
     url: req.body.url,
     description: req.body.description,
