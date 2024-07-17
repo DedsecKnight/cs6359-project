@@ -15,6 +15,13 @@
       "when": 1719688969402,
       "tag": "0001_slippery_jane_foster",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1721228617021,
+      "tag": "0002_rare_toad_men",
+      "breakpoints": true
     }
   ]
 }
