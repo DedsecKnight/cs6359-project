@@ -4,48 +4,83 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
   const searchTerms = (req.query.query as string).split(" ");
-  const queryType = (req.query.type as string);
+  const queryType = req.query.type as string;
   const pageNumber = parseInt(req.query.page as string);
   const numResultPerPage = parseInt(process.env.SEARCH_RESULT_PER_PAGE!);
-  const invalidSymbol = ["`", "~", "!", "@", "#", "$", "%", "^", "&", "*", "[", "]", "{", "}", "|", "\\", "\"", "'", ";", ":", "<", ">", ",", ".", "?", "/", "(", ")"];
-  for (let i = 0; i < searchTerms.length; i++){
-    for (let j = 0; j < invalidSymbol.length; j++){
+  const invalidSymbol = [
+    "`",
+    "~",
+    "!",
+    "@",
+    "#",
+    "$",
+    "%",
+    "^",
+    "&",
+    "*",
+    "[",
+    "]",
+    "{",
+    "}",
+    "|",
+    "\\",
+    '"',
+    "'",
+    ";",
+    ":",
+    "<",
+    ">",
+    ",",
+    ".",
+    "?",
+    "/",
+    "(",
+    ")",
+  ];
+  for (let i = 0; i < searchTerms.length; i++) {
+    for (let j = 0; j < invalidSymbol.length; j++) {
       searchTerms[i] = searchTerms[i].replaceAll(invalidSymbol[j], "");
     }
   }
-  
+
   if (searchTerms.length === 0) {
     return res.json({
-      searchResult: []
-    })
-  };
+      searchResult: [],
+    });
+  }
   const webpages = await db.select().from(webTable);
   const numPages = Math.ceil(webpages.length / numResultPerPage);
   const filteredWebpages = webpages.filter((webpage) => {
-    if (queryType === "or") return webpage.description.split(" ").some((keyword) => searchTerms.indexOf(keyword) !== -1);
+    if (queryType === "or")
+      return webpage.description
+        .split(" ")
+        .some((keyword) => searchTerms.indexOf(keyword) !== -1);
     const parsedDescription = webpage.description.split(" ");
     if (queryType === "and") {
-      return searchTerms.every((term) => parsedDescription.indexOf(term) !== -1);
+      return searchTerms.every(
+        (term) => parsedDescription.indexOf(term) !== -1,
+      );
     }
     return searchTerms.every((term) => parsedDescription.indexOf(term) === -1);
   });
   return res.json({
-    searchResult: filteredWebpages.sort((a,b) => (a.url > b.url) ? 1 : ((b.url > a.url) ? -1 : 0)).map(({ id, ...rest }) => rest).splice((pageNumber - 1) * numResultPerPage, numResultPerPage),
-   numPages 
+    searchResult: filteredWebpages
+      .sort((a, b) => (a.url > b.url ? 1 : b.url > a.url ? -1 : 0))
+      .splice((pageNumber - 1) * numResultPerPage, numResultPerPage),
+    numPages,
   });
 }
-
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req;
   switch (method) {
-    case 'GET': {
+    case "GET": {
       return handleGetRequest(req, res);
     }
     default: {
       return res.status(404).json({
-        msg: "Route not found"
-      })
+        msg: "Route not found",
+      });
     }
   }
 }
