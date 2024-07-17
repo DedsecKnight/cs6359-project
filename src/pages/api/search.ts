@@ -7,6 +7,7 @@ async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
   const queryType = req.query.type as string;
   const pageNumber = parseInt(req.query.page as string);
   const numResultPerPage = parseInt(process.env.SEARCH_RESULT_PER_PAGE!);
+  const searchOrder = req.query.order as string;
   const invalidSymbol = [
     "`",
     "~",
@@ -65,7 +66,15 @@ async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
   });
   return res.json({
     searchResult: filteredWebpages
-      .sort((a, b) => (a.url > b.url ? 1 : b.url > a.url ? -1 : 0))
+      .sort((a, b) =>
+        searchOrder === "alphabet"
+          ? a.url > b.url
+            ? 1
+            : b.url > a.url
+              ? -1
+              : 0
+          : b.numAccessed - a.numAccessed,
+      )
       .splice((pageNumber - 1) * numResultPerPage, numResultPerPage),
     numPages,
   });
