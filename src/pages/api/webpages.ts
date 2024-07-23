@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
 import { db } from "@/db/db";
-import { webTable } from "@/db/schema";
+import { tagTable, webTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 function validateURL(url: string) {
@@ -25,6 +25,10 @@ async function handlePutRequest(req: NextApiRequest, res: NextApiResponse) {
     url: req.body.url,
     description: req.body.description,
   }).where(eq(webTable.id, req.body.id));
+  await db.update(tagTable).set({
+    webpageId: req.body.id,
+    tagName: req.body.tags
+  }).where(eq(tagTable.webpageId, req.body.id));
   return res.status(200).json({
     msg: "Successfull"
   })
@@ -54,6 +58,10 @@ async function handlePostRequest(req: NextApiRequest, res: NextApiResponse) {
   await db.insert(webTable).values({
     url: req.body.url,
     description: req.body.description,
+  });
+  await db.insert(tagTable).values({
+    webpageId: req.body.id,
+    tagName: req.body.tags
   });
   return res.status(200).json({
     msg: "Successfull"
