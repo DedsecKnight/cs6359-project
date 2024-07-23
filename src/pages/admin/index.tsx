@@ -26,7 +26,7 @@ interface AdminPageProps {
     id: number;
     url: string;
     description: string;
-    tags: string;
+    tags: string[];
   }>
 }
 
@@ -135,18 +135,18 @@ export default function AdminPage({ authorized, users, webpages }: AdminPageProp
         </TableHeader>
         <TableBody>
           {
-            webpages.map((webpage, idx) => (
+            Object.values(webpages).map((webpage, idx) => (
               <TableRow key={idx}>
                 <TableCell className="font-medium">{webpage.id}</TableCell>
                 <TableCell className="font-medium">{webpage.url}</TableCell>
                 <TableCell className="text-left">{webpage.description}</TableCell>
-                <TableCell className="text-center">{webpage.tags}</TableCell>
+                <TableCell className="text-center">{webpage.tags.join(", ")}</TableCell>
                 <TableCell className="flex justify-end gap-x-4">
                   <ModifyWebpageDialog
                     defaultUrl={webpage.url}
                     defaultDesc={webpage.description}
                     urlId={webpage.id}
-                    defaultTags = {webpage.tags}
+                    defaultTags = {webpage.tags[0]}
                     onSubmit={async (urlId, url, description, tags) => {
                       const res = await fetch("/api/webpages", {
                         headers: {
@@ -226,12 +226,28 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     id: credentialsTable.id,
     username: credentialsTable.username
   }).from(credentialsTable);
-  const webpages = await db.select({
+  const web = await db.select({
     id: webTable.id,
     url: webTable.url,
     description: webTable.description,
     tags: tagTable.tagName
   }).from(webTable).leftJoin(tagTable, eq(webTable.id, tagTable.webpageId));
+  const webpages = web.reduce<Record<number, {id: number, url: string, description: string, tags: string[]}>>((acc, row)=>{
+    const id = row.id;
+    const url = row.url;
+    const description = row.description;
+    const tags = row.tags;
+
+    if (!acc[id]) {
+      acc[id] = { id, url, description, tags: [] };
+    }
+    if (tags) {
+      acc[id].tags.push(tags);
+    }
+    return acc;
+  },
+  {}
+  );
   return {
     props: {
       authorized: isAdmin.length > 0,
