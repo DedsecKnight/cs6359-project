@@ -28,13 +28,10 @@ async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
     '"',
     "'",
     ";",
-    ":",
     "<",
     ">",
     ",",
-    ".",
     "?",
-    "/",
     "(",
     ")",
   ];
