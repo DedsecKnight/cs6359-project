@@ -9,38 +9,36 @@ import {
   credentialsTable,
   transactionTable,
 } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 async function handlePutRequest(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
   if (!session || session!.user.role !== "advertiser") {
     return res.status(403).json({ msg: "unauthorized" });
   }
-  const advertisement = await db
-    .select({ id: credentialsTable.id })
-    .from(advertisementTable)
-    .where(eq(advertisementTable.id, req.body.id))
+  const billingAccount = await db
+    .select({ id: billingAccountTable.id })
+    .from(billingAccountTable)
     .innerJoin(
       advertiserTable,
-      eq(advertisementTable.advertiserId, advertiserTable.id),
+      eq(billingAccountTable.advertiserId, advertiserTable.id),
     )
-    .innerJoin(
-      credentialsTable,
-      eq(advertiserTable.credentialsId, credentialsTable.id),
+    .where(
+      and(
+        eq(billingAccountTable.id, req.body.id),
+        eq(advertiserTable.credentialsId, parseInt(session!.user.id)),
+      ),
     )
     .limit(1);
-  if (advertisement.length === 0) {
-    return res.status(404).json({ msg: "Advertisement not found" });
-  }
-  if (advertisement[0].id != parseInt(session!.user.id)) {
-    return res.status(403).json({ msg: "unauthorized" });
+  if (billingAccount.length === 0) {
+    return res.status(404).json({ msg: "Billing account not found" });
   }
   await db
-    .update(advertisementTable)
+    .update(billingAccountTable)
     .set({
-      content: req.body.content,
+      creditCardNumber: req.body.creditCardNumber,
     })
-    .where(eq(advertisementTable.id, req.body.id));
+    .where(eq(billingAccountTable.id, req.body.id));
   return res.status(200).json({
     msg: "Successfull",
   });
@@ -51,28 +49,26 @@ async function handleDeleteRequest(req: NextApiRequest, res: NextApiResponse) {
   if (!session || session!.user.role !== "advertiser") {
     return res.status(403).json({ msg: "unauthorized" });
   }
-  const advertisement = await db
-    .select({ id: credentialsTable.id })
-    .from(advertisementTable)
-    .where(eq(advertisementTable.id, req.body.id))
+  const billingAccount = await db
+    .select({ id: billingAccountTable.id })
+    .from(billingAccountTable)
     .innerJoin(
       advertiserTable,
-      eq(advertisementTable.advertiserId, advertiserTable.id),
+      eq(billingAccountTable.advertiserId, advertiserTable.id),
     )
-    .innerJoin(
-      credentialsTable,
-      eq(advertiserTable.credentialsId, credentialsTable.id),
+    .where(
+      and(
+        eq(billingAccountTable.id, req.body.id),
+        eq(advertiserTable.id, parseInt(session!.user.id)),
+      ),
     )
     .limit(1);
-  if (advertisement.length === 0) {
-    return res.status(404).json({ msg: "Advertisement not found" });
-  }
-  if (advertisement[0].id != parseInt(session!.user.id)) {
-    return res.status(403).json({ msg: "unauthorized" });
+  if (billingAccount.length === 0) {
+    return res.status(404).json({ msg: "Billing Account not found" });
   }
   await db
-    .delete(advertisementTable)
-    .where(eq(advertisementTable.id, req.body.id));
+    .delete(billingAccountTable)
+    .where(eq(billingAccountTable.id, req.body.id));
   return res.status(200).json({
     msg: "Successfull",
   });
@@ -91,28 +87,9 @@ async function handlePostRequest(req: NextApiRequest, res: NextApiResponse) {
   if (advertiser.length === 0) {
     return res.status(400).json({ msg: "bad request" });
   }
-  // get billing account info
-  const billingAccount = await db
-    .select()
-    .from(billingAccountTable)
-    .where(eq(billingAccountTable.id, req.body.cardInfo.id))
-    .limit(1);
-  if (billingAccount.length === 0) {
-    return res.status(400).json({ msg: "bad request" });
-  }
-  // create new advertisement
-  const advertisementAddResult = await db
-    .insert(advertisementTable)
-    .values({
-      advertiserId: advertiser[0].id,
-      content: req.body.content,
-      advertisementTierId: req.body.tierInfo.id,
-    })
-    .returning({ insertedId: advertisementTable.id });
-  // create transaction entry
-  await db.insert(transactionTable).values({
-    advertisementId: advertisementAddResult[0].insertedId,
-    billingAccountId: billingAccount[0].id,
+  await db.insert(billingAccountTable).values({
+    creditCardNumber: req.body.creditCardNumber,
+    advertiserId: advertiser[0].id,
   });
   return res.status(200).json({
     msg: "Successfull",

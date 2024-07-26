@@ -1,5 +1,10 @@
 import { db } from "@/db/db";
-import { webTable } from "@/db/schema";
+import {
+  advertisementTable,
+  advertisementTierTable,
+  webTable,
+} from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { NextApiRequest, NextApiResponse } from "next";
 
 async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
@@ -61,6 +66,16 @@ async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
     }
     return searchTerms.every((term) => parsedDescription.indexOf(term) === -1);
   });
+  const advertisements = await db
+    .select({
+      content: advertisementTable.content,
+    })
+    .from(advertisementTable)
+    .innerJoin(
+      advertisementTierTable,
+      eq(advertisementTable.advertisementTierId, advertisementTierTable.id),
+    )
+    .orderBy(advertisementTierTable.tierRank);
   return res.json({
     searchResult: filteredWebpages
       .sort((a, b) =>
@@ -74,6 +89,7 @@ async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
       )
       .splice((pageNumber - 1) * numResultPerPage, numResultPerPage),
     numPages,
+    advertisements,
   });
 }
 
