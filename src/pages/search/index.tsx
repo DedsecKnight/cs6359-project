@@ -35,6 +35,7 @@ interface SearchPageProps {
   type: string;
   numPages: number;
   sortOrder: "alphabet" | "numAccess";
+  advertisements: Array<{ content: string }>;
 }
 
 export default function SearchPage({
@@ -45,6 +46,7 @@ export default function SearchPage({
   type,
   sortOrder,
   numPages,
+  advertisements,
 }: SearchPageProps) {
   const router = useRouter();
   const { status, data: session } = useSession();
@@ -134,6 +136,11 @@ export default function SearchPage({
         </SelectContent>
       </Select>
       <div className="flex flex-col items-center my-8">
+        {advertisements.map((advertisement) => (
+          <div className="border rounded-lg w-full p-4 my-3">
+            <h1 className="text-lg">Advertisement: {advertisement.content}</h1>
+          </div>
+        ))}
         {searchResult.length === 0 ? (
           <div className="w-full">
             <h1 className="text-xl">No result found</h1>
@@ -219,6 +226,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       type: urlParams.get("type")!,
       numPages: data.numPages,
       sortOrder,
+      advertisements: data.advertisements,
     },
   };
 };
