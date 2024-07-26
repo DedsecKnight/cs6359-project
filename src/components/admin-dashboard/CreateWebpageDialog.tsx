@@ -6,13 +6,13 @@ import { Input } from "../ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../ui/select";
 
 interface CreateWebpageDialogProps {
-  onSubmit: (url: string, description: string) => Promise<void>;
+  onSubmit: (url: string, description: string, tags: string) => Promise<void>;
 }
 
 export default function CreateWebpageDialog({ onSubmit }: CreateWebpageDialogProps) {
   const [url, setUrl] = useState<string>("");
   const [description, setDesc] = useState<string>("");
-  
+  const [tags, setTags] = useState<string>("");
 
   return <Dialog>
     <DialogTrigger asChild>
@@ -49,10 +49,22 @@ export default function CreateWebpageDialog({ onSubmit }: CreateWebpageDialogPro
             className="col-span-3"
           />
         </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="tags" className="text-right">
+            Tags
+          </Label>
+          <Input
+            id="tags"
+            type="tags"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            className="col-span-3"
+          />
+        </div>
       </div>
       <DialogFooter>
         <Button onClick={async () => {
-          await onSubmit(url, description);
+          await onSubmit(url, description, tags);
           alert("Update successful");
         }}>Save changes</Button>
       </DialogFooter>

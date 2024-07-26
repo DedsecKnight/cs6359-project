@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { authOptions } from "../api/auth/[...nextauth]";
 import { db } from "@/db/db";
-import { adminTable, credentialsTable, webTable } from "@/db/schema";
+import { adminTable, credentialsTable, webTable, tagTable } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import Navbar from "@/components/Navbar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -26,6 +26,7 @@ interface AdminPageProps {
     id: number;
     url: string;
     description: string;
+    tags: string[];
   }>
 }
 
@@ -42,7 +43,7 @@ export default function AdminPage({ authorized, users, webpages }: AdminPageProp
   return <div className="mx-auto w-full relative">
     <Navbar userAuthenticated={status === "authenticated"} userIsAdmin={session!.user.role === "admin"} />
     <h1 className="text-3xl">Admin Dashboard</h1>
-    <div className="w-3/5 mx-auto my-5">
+    <div className="w-4/5 mx-auto my-5">
       <Table>
         <TableHeader>
           <TableRow>
@@ -128,22 +129,25 @@ export default function AdminPage({ authorized, users, webpages }: AdminPageProp
             <TableHead>ID</TableHead>
             <TableHead>URL</TableHead>
             <TableHead className="text-center">Description</TableHead>
+            <TableHead className="text-center">Tags</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {
-            webpages.map((webpage, idx) => (
+            Object.values(webpages).map((webpage, idx) => (
               <TableRow key={idx}>
                 <TableCell className="font-medium">{webpage.id}</TableCell>
                 <TableCell className="font-medium">{webpage.url}</TableCell>
-                <TableCell className="text-center">{webpage.description}</TableCell>
+                <TableCell className="text-left">{webpage.description}</TableCell>
+                <TableCell className="text-center">{webpage.tags.join(", ")}</TableCell>
                 <TableCell className="flex justify-end gap-x-4">
                   <ModifyWebpageDialog
                     defaultUrl={webpage.url}
                     defaultDesc={webpage.description}
                     urlId={webpage.id}
-                    onSubmit={async (urlId, url, description) => {
+                    defaultTags = {webpage.tags[0]}
+                    onSubmit={async (urlId, url, description, tags) => {
                       const res = await fetch("/api/webpages", {
                         headers: {
                           "Content-Type": "application/json"
@@ -152,7 +156,8 @@ export default function AdminPage({ authorized, users, webpages }: AdminPageProp
                         body: JSON.stringify({
                           id: urlId,
                           url,
-                          description
+                          description,
+                          tags
                         })
                       });
                       if (res.status !== 200) {
@@ -182,16 +187,16 @@ export default function AdminPage({ authorized, users, webpages }: AdminPageProp
             ))
           }
           <TableRow>
-            <TableCell colSpan={3} className="text-center">
+            <TableCell colSpan={5} className="text-center">
               <CreateWebpageDialog
-                onSubmit={async (url, description) => {
+                onSubmit={async (url, description, tag) => {
                   const res = await fetch("/api/webpages", {
                     headers: {
                       "Content-Type": "application/json"
                     },
                     method: "POST",
                     body: JSON.stringify({
-                      url, description
+                      url, description, tag
                     })
                   });
                   if (res.status !== 200) {
@@ -221,11 +226,28 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     id: credentialsTable.id,
     username: credentialsTable.username
   }).from(credentialsTable);
-  const webpages = await db.select({
+  const web = await db.select({
     id: webTable.id,
     url: webTable.url,
-    description: webTable.description
-  }).from(webTable);
+    description: webTable.description,
+    tags: tagTable.tagName
+  }).from(webTable).leftJoin(tagTable, eq(webTable.id, tagTable.webpageId));
+  const webpages = web.reduce<Record<number, {id: number, url: string, description: string, tags: string[]}>>((acc, row)=>{
+    const id = row.id;
+    const url = row.url;
+    const description = row.description;
+    const tags = row.tags;
+
+    if (!acc[id]) {
+      acc[id] = { id, url, description, tags: [] };
+    }
+    if (tags) {
+      acc[id].tags.push(tags);
+    }
+    return acc;
+  },
+  {}
+  );
   return {
     props: {
       authorized: isAdmin.length > 0,

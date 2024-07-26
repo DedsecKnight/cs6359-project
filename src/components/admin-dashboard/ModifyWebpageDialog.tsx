@@ -8,16 +8,18 @@ interface ModifyWebpageDialogProps {
   urlId: number;
   defaultUrl: string;
   defaultDesc: string;
-  onSubmit: (urlId: number, url: string, description: string) => Promise<void>;
+  defaultTags: string;
+  onSubmit: (urlId: number, url: string, description: string, tags: string) => Promise<void>;
 }
 
-export default function ModifyWebpageDialog({ urlId, defaultUrl, defaultDesc, onSubmit }: ModifyWebpageDialogProps) {
+export default function ModifyWebpageDialog({ urlId, defaultUrl, defaultDesc, defaultTags, onSubmit }: ModifyWebpageDialogProps) {
   const [url, setUrl] = useState<string>(defaultUrl);
   const [description, setDesc] = useState<string>(defaultDesc);
+  const [tags, setTags] = useState<string>(defaultTags)
 
   return <Dialog>
     <DialogTrigger asChild>
-      <Button variant="outline">Modify Webpage</Button>
+      <Button variant="outline">Modify</Button>
     </DialogTrigger>
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
@@ -50,10 +52,22 @@ export default function ModifyWebpageDialog({ urlId, defaultUrl, defaultDesc, on
             className="col-span-3"
           />
         </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="tags" className="text-right">
+            Tags
+          </Label>
+          <Input
+            id="tags"
+            type="tags"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            className="col-span-3"
+          />
+        </div>
       </div>
       <DialogFooter>
         <Button onClick={async () => {
-          await onSubmit(urlId, url, description);
+          await onSubmit(urlId, url, description, tags);
           alert("Update successful");
         }}>Save changes</Button>
       </DialogFooter>

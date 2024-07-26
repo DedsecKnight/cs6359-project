@@ -9,7 +9,7 @@ interface DeleteWebpageDialogProps {
 export default function DeleteWebpageDialog({ urlId, onSubmit }: DeleteWebpageDialogProps) {
   return <Dialog>
     <DialogTrigger asChild>
-      <Button variant="destructive">Delete Webpage</Button>
+      <Button variant="destructive">Delete</Button>
     </DialogTrigger>
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
