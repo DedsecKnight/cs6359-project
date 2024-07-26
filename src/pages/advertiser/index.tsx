@@ -14,6 +14,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useRouter } from "next/router";
 import Navbar from "@/components/Navbar";
 import AdvertisementManagementDashboard from "@/components/advertiser-dashboard/AdvertisementManagementDashboard";
+import BillingAccountManagementDashboard from "@/components/advertiser-dashboard/BillingAccountManagementDashboard";
 
 interface AdvertiserPageProps {
   authorized: boolean;
@@ -58,6 +59,7 @@ export default function AdvertiserPage({
         tierList={tierList}
         advertisements={advertisements}
       />
+      <BillingAccountManagementDashboard billingAccounts={billingAccounts} />
     </div>
   );
 }
