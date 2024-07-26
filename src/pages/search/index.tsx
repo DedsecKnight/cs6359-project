@@ -136,8 +136,8 @@ export default function SearchPage({
         </SelectContent>
       </Select>
       <div className="flex flex-col items-center my-8">
-        {advertisements.map((advertisement) => (
-          <div className="border rounded-lg w-full p-4 my-3">
+        {advertisements.map((advertisement, idx) => (
+          <div key={idx} className="border rounded-lg w-full p-4 my-3">
             <h1 className="text-lg">Advertisement: {advertisement.content}</h1>
           </div>
         ))}
