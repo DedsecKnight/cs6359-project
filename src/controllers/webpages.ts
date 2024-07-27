@@ -85,3 +85,12 @@ export async function addNewPage(
   });
   return { statusCode: 200, msg: "Successful" };
 }
+
+export async function getPageTags() {
+  const tags = await db.select().from(tagTable);
+  const filteredTags = new Set(tags.map(({ tagName }) => tagName));
+  return Array.from(filteredTags).map((tag, idx) => ({
+    id: idx,
+    tag,
+  }));
+}
