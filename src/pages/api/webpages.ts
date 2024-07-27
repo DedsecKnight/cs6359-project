@@ -1,37 +1,22 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
-import { db } from "@/db/db";
-import { tagTable, webTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
-
-function validateURL(url: string) {
-  const regExpMatcher = new RegExp("^(http:\/\/|https:\/\/)?(www.)?([a-zA-Z0-9_.-]*)(\.)(edu|com|org|net|gov)$");
-  return regExpMatcher.test(url);
-}
+import { addNewPage, deletePage, updatePageInfo } from "@/controllers/webpages";
 
 async function handlePutRequest(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
   if (!session || session!.user.role !== "admin") {
     return res.status(403).json({ msg: "unauthorized" });
   }
-  if (!validateURL(req.body.url)) {
-    return res.status(400).json({
-      msg: "Invalid URL",
-    })
-  }
-  await db.update(webTable).set({
-    id: req.body.id,
-    url: req.body.url,
-    description: req.body.description,
-  }).where(eq(webTable.id, req.body.id));
-  await db.update(tagTable).set({
-    webpageId: req.body.id,
-    tagName: req.body.tags
-  }).where(eq(tagTable.webpageId, req.body.id));
-  return res.status(200).json({
-    msg: "Successfull"
-  })
+  const { statusCode, msg } = await updatePageInfo(
+    req.body.id,
+    req.body.description,
+    req.body.url,
+    req.body.tags,
+  );
+  return res.status(statusCode).json({
+    msg,
+  });
 }
 
 async function handleDeleteRequest(req: NextApiRequest, res: NextApiResponse) {
@@ -39,10 +24,10 @@ async function handleDeleteRequest(req: NextApiRequest, res: NextApiResponse) {
   if (!session || session!.user.role !== "admin") {
     return res.status(403).json({ msg: "unauthorized" });
   }
-  await db.delete(webTable).where(eq(webTable.id, req.body.id));
-  return res.status(200).json({
-    msg: "Successfull"
-  })
+  const { statusCode, msg } = await deletePage(req.body.id);
+  return res.status(statusCode).json({
+    msg,
+  });
 }
 
 async function handlePostRequest(req: NextApiRequest, res: NextApiResponse) {
@@ -50,39 +35,31 @@ async function handlePostRequest(req: NextApiRequest, res: NextApiResponse) {
   if (!session || session!.user.role !== "admin") {
     return res.status(403).json({ msg: "unauthorized" });
   }
-  if (!validateURL(req.body.url)) {
-    return res.status(400).json({
-      msg: "Invalid URL",
-    })
-  }
-  await db.insert(webTable).values({
-    url: req.body.url,
-    description: req.body.description,
+  const { statusCode, msg } = await addNewPage(
+    req.body.description,
+    req.body.url,
+    req.body.tags,
+  );
+  return res.status(statusCode).json({
+    msg,
   });
-  await db.insert(tagTable).values({
-    webpageId: req.body.id,
-    tagName: req.body.tags
-  });
-  return res.status(200).json({
-    msg: "Successfull"
-  })
 }
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req;
   switch (method) {
-    case 'PUT': {
+    case "PUT": {
       return handlePutRequest(req, res);
     }
-    case 'DELETE': {
+    case "DELETE": {
       return handleDeleteRequest(req, res);
     }
-    case 'POST': {
+    case "POST": {
       return handlePostRequest(req, res);
     }
     default: {
       return res.status(404).json({
-        msg: "Route not found"
-      })
+        msg: "Route not found",
+      });
     }
   }
 }
