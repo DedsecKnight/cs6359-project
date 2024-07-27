@@ -12,5 +12,5 @@ jobs:
         with:
           node-version: "20.x"
       - run: npm ci
-      - run: echo 'DATABASE_URL="${{ secrets.DATABASE_URL }}"' >> .env.local
+      - run: echo 'DATABASE_URL="${{ secrets.DATABASE_URL }}"\nSEARCH_RESULT_PER_AGE="${{ secrets.SEARCH_RESULT_PER_PAGE }}"' >> .env.local
       - run: npm test
