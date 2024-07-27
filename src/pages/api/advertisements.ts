@@ -1,48 +1,24 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
-import { db } from "@/db/db";
 import {
-  advertisementTable,
-  advertiserTable,
-  billingAccountTable,
-  credentialsTable,
-  transactionTable,
-} from "@/db/schema";
-import { eq } from "drizzle-orm";
+  createNewAdvertisement,
+  deleteAdvertisement,
+  updateAdvertisementContent,
+} from "@/controllers/advertisements";
 
 async function handlePutRequest(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
   if (!session || session!.user.role !== "advertiser") {
     return res.status(403).json({ msg: "unauthorized" });
   }
-  const advertisement = await db
-    .select({ id: credentialsTable.id })
-    .from(advertisementTable)
-    .where(eq(advertisementTable.id, req.body.id))
-    .innerJoin(
-      advertiserTable,
-      eq(advertisementTable.advertiserId, advertiserTable.id),
-    )
-    .innerJoin(
-      credentialsTable,
-      eq(advertiserTable.credentialsId, credentialsTable.id),
-    )
-    .limit(1);
-  if (advertisement.length === 0) {
-    return res.status(404).json({ msg: "Advertisement not found" });
-  }
-  if (advertisement[0].id != parseInt(session!.user.id)) {
-    return res.status(403).json({ msg: "unauthorized" });
-  }
-  await db
-    .update(advertisementTable)
-    .set({
-      content: req.body.content,
-    })
-    .where(eq(advertisementTable.id, req.body.id));
-  return res.status(200).json({
-    msg: "Successfull",
+  const { statusCode, msg } = await updateAdvertisementContent(
+    parseInt(session!.user.id),
+    req.body.id,
+    req.body.content,
+  );
+  return res.status(statusCode).json({
+    msg,
   });
 }
 
@@ -51,31 +27,11 @@ async function handleDeleteRequest(req: NextApiRequest, res: NextApiResponse) {
   if (!session || session!.user.role !== "advertiser") {
     return res.status(403).json({ msg: "unauthorized" });
   }
-  const advertisement = await db
-    .select({ id: credentialsTable.id })
-    .from(advertisementTable)
-    .where(eq(advertisementTable.id, req.body.id))
-    .innerJoin(
-      advertiserTable,
-      eq(advertisementTable.advertiserId, advertiserTable.id),
-    )
-    .innerJoin(
-      credentialsTable,
-      eq(advertiserTable.credentialsId, credentialsTable.id),
-    )
-    .limit(1);
-  if (advertisement.length === 0) {
-    return res.status(404).json({ msg: "Advertisement not found" });
-  }
-  if (advertisement[0].id != parseInt(session!.user.id)) {
-    return res.status(403).json({ msg: "unauthorized" });
-  }
-  await db
-    .delete(advertisementTable)
-    .where(eq(advertisementTable.id, req.body.id));
-  return res.status(200).json({
-    msg: "Successfull",
-  });
+  const { statusCode, msg } = await deleteAdvertisement(
+    parseInt(session!.user.id),
+    req.body.id,
+  );
+  return res.status(statusCode).json({ msg });
 }
 
 async function handlePostRequest(req: NextApiRequest, res: NextApiResponse) {
@@ -83,40 +39,13 @@ async function handlePostRequest(req: NextApiRequest, res: NextApiResponse) {
   if (!session || session!.user.role !== "advertiser") {
     return res.status(403).json({ msg: "unauthorized" });
   }
-  const advertiser = await db
-    .select({ id: advertiserTable.id })
-    .from(advertiserTable)
-    .where(eq(advertiserTable.credentialsId, parseInt(session!.user.id)))
-    .limit(1);
-  if (advertiser.length === 0) {
-    return res.status(400).json({ msg: "bad request" });
-  }
-  // get billing account info
-  const billingAccount = await db
-    .select()
-    .from(billingAccountTable)
-    .where(eq(billingAccountTable.id, req.body.cardInfo.id))
-    .limit(1);
-  if (billingAccount.length === 0) {
-    return res.status(400).json({ msg: "bad request" });
-  }
-  // create new advertisement
-  const advertisementAddResult = await db
-    .insert(advertisementTable)
-    .values({
-      advertiserId: advertiser[0].id,
-      content: req.body.content,
-      advertisementTierId: req.body.tierInfo.id,
-    })
-    .returning({ insertedId: advertisementTable.id });
-  // create transaction entry
-  await db.insert(transactionTable).values({
-    advertisementId: advertisementAddResult[0].insertedId,
-    billingAccountId: billingAccount[0].id,
-  });
-  return res.status(200).json({
-    msg: "Successfull",
-  });
+  const { statusCode, msg } = await createNewAdvertisement(
+    parseInt(session!.user.id),
+    req.body.content,
+    req.body.tierInfo,
+    req.body.cardInfo,
+  );
+  return res.status(statusCode).json({ msg });
 }
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req;

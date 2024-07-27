@@ -1,24 +1,9 @@
-import { db } from "@/db/db";
-import { webTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import { NextApiRequest, NextApiResponse } from "next";
+import { incrementNumAccessOfPage } from "@/controllers/webpages";
 
 async function handlePostRequest(req: NextApiRequest, res: NextApiResponse) {
-  const webPage = await db
-    .select({ numAccessed: webTable.numAccessed })
-    .from(webTable)
-    .where(eq(webTable.id, req.body.pageId))
-    .limit(1);
-  if (webPage.length === 0) {
-    return res.status(400).json({ msg: "Page not found" });
-  }
-  await db
-    .update(webTable)
-    .set({
-      numAccessed: webPage[0].numAccessed + 1,
-    })
-    .where(eq(webTable.id, req.body.pageId));
-  return res.status(200).json({ msg: "done" });
+  const { statusCode, msg } = await incrementNumAccessOfPage(req.body.pageId);
+  return res.status(statusCode).json({ msg });
 }
 
 export default function handle(req: NextApiRequest, res: NextApiResponse) {

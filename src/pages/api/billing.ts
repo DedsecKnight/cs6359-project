@@ -10,37 +10,24 @@ import {
   transactionTable,
 } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
+import {
+  createBillingAccount,
+  deleteBillingAccount,
+  updateBillingAccount,
+} from "@/controllers/billing";
 
 async function handlePutRequest(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
   if (!session || session!.user.role !== "advertiser") {
     return res.status(403).json({ msg: "unauthorized" });
   }
-  const billingAccount = await db
-    .select({ id: billingAccountTable.id })
-    .from(billingAccountTable)
-    .innerJoin(
-      advertiserTable,
-      eq(billingAccountTable.advertiserId, advertiserTable.id),
-    )
-    .where(
-      and(
-        eq(billingAccountTable.id, req.body.id),
-        eq(advertiserTable.credentialsId, parseInt(session!.user.id)),
-      ),
-    )
-    .limit(1);
-  if (billingAccount.length === 0) {
-    return res.status(404).json({ msg: "Billing account not found" });
-  }
-  await db
-    .update(billingAccountTable)
-    .set({
-      creditCardNumber: req.body.creditCardNumber,
-    })
-    .where(eq(billingAccountTable.id, req.body.id));
-  return res.status(200).json({
-    msg: "Successfull",
+  const { statusCode, msg } = await updateBillingAccount(
+    parseInt(session!.user.id),
+    req.body.id,
+    req.body.creditCardNumber,
+  );
+  return res.status(statusCode).json({
+    msg,
   });
 }
 
@@ -49,28 +36,12 @@ async function handleDeleteRequest(req: NextApiRequest, res: NextApiResponse) {
   if (!session || session!.user.role !== "advertiser") {
     return res.status(403).json({ msg: "unauthorized" });
   }
-  const billingAccount = await db
-    .select({ id: billingAccountTable.id })
-    .from(billingAccountTable)
-    .innerJoin(
-      advertiserTable,
-      eq(billingAccountTable.advertiserId, advertiserTable.id),
-    )
-    .where(
-      and(
-        eq(billingAccountTable.id, req.body.id),
-        eq(advertiserTable.id, parseInt(session!.user.id)),
-      ),
-    )
-    .limit(1);
-  if (billingAccount.length === 0) {
-    return res.status(404).json({ msg: "Billing Account not found" });
-  }
-  await db
-    .delete(billingAccountTable)
-    .where(eq(billingAccountTable.id, req.body.id));
-  return res.status(200).json({
-    msg: "Successfull",
+  const { statusCode, msg } = await deleteBillingAccount(
+    parseInt(session!.user.id),
+    req.body.id,
+  );
+  return res.status(statusCode).json({
+    msg,
   });
 }
 
@@ -79,20 +50,12 @@ async function handlePostRequest(req: NextApiRequest, res: NextApiResponse) {
   if (!session || session!.user.role !== "advertiser") {
     return res.status(403).json({ msg: "unauthorized" });
   }
-  const advertiser = await db
-    .select({ id: advertiserTable.id })
-    .from(advertiserTable)
-    .where(eq(advertiserTable.credentialsId, parseInt(session!.user.id)))
-    .limit(1);
-  if (advertiser.length === 0) {
-    return res.status(400).json({ msg: "bad request" });
-  }
-  await db.insert(billingAccountTable).values({
-    creditCardNumber: req.body.creditCardNumber,
-    advertiserId: advertiser[0].id,
-  });
-  return res.status(200).json({
-    msg: "Successfull",
+  const { statusCode, msg } = await createBillingAccount(
+    parseInt(session!.user.id),
+    req.body.creditCardNumber,
+  );
+  return res.status(statusCode).json({
+    msg,
   });
 }
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
