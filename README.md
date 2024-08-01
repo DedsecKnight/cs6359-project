@@ -1,6 +1,4 @@
-Interim Project 1
-https://docs.google.com/presentation/d/1l7B1zecjUAhpbXVse2mn8o6TyDHbnqOXCZTsS-Txhs0/edit?usp=sharing
-
+Deliverables: https://drive.google.com/drive/u/0/folders/1gJkmqpXLqHBD3g8CVV2XA9I3SUYh5Aqv
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
